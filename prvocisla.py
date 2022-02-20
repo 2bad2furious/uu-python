@@ -18,6 +18,7 @@ def print_prvocisla_until(limit: int) -> None:
             break
         print(i)
 
+
 def print_n_prvocisel(n: int) -> None:
     for i in prvocisla():
         if n == 0:
