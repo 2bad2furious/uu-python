@@ -16,7 +16,7 @@ class Article:
                 yield word
 
     def __str__(self):
-        return self.id + ":" + self.title
+        return self.id + ": " + self.title
 
 
 Index = dict[str, set[Article]]
@@ -34,7 +34,8 @@ def create_index(articles: Iterable[Article]) -> Index:
 
 
 def parse_chunk(chunk: [str, str, str]) -> Article:
-    return Article(chunk[0], chunk[1] if 1 in chunk else "", chunk[2] if 2 in chunk else "")
+    l = len(chunk)
+    return Article(chunk[0], chunk[1] if l > 1 else "", chunk[2] if l > 2 else "")
 
 
 def parse_articles(path: str) -> Iterable[Article]:
@@ -45,16 +46,22 @@ def parse_articles(path: str) -> Iterable[Article]:
         return map(parse_chunk, chunks)
 
 
-def search(index: Index, *terms: str) -> set[Article]:
-    result: set[Article] = set()
+def search(index: Index, *terms: str) -> dict[str, set[Article]]:
+    result: dict[str, set[Article]] = {}
     for term in terms:
+        result[term] = set()
         if term in index:
             for article in index[term]:
-                result.add(article)
+                result[term].add(article)
     return result
 
 
 if __name__ == '__main__':
     articles = parse_articles(os.path.join(os.path.dirname(__file__), "db.txt"))
     index = create_index(articles)
-    print("\n".join(map(str, search(index, "plastic"))))
+    for word, result in search(index, "kokos", "plastic").items():
+        if result:
+            print(f"Results for {word}:")
+            print("\t" + "\n\t".join(map(str, result)))
+        else:
+            print(f"No results for {word}")
