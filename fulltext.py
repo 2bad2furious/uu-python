@@ -1,7 +1,17 @@
 import os.path
+import re
 from typing import Iterable
 
 import more_itertools
+
+letter_patten = re.compile("[\w]+")
+
+
+class WordWithIndex:
+
+    def __init__(self, word: str, pos: int):
+        self.word = word
+        self.pos = pos
 
 
 class Article:
@@ -10,26 +20,38 @@ class Article:
         self.title = title
         self.text = text
 
-    def words(self) -> Iterable[str]:
-        for words in [self.id, self.title, self.text]:
-            for word in words.split(" "):
-                yield word
+    def words(self) -> Iterable[WordWithIndex]:
+        buffer = ''
+        for (i, ch) in enumerate(self.text):
+            if ch != ' ' and letter_patten.match(ch):
+                buffer += ch
+            elif buffer != '':
+                yield WordWithIndex(buffer, i - len(buffer))
+                buffer = ''
 
     def __str__(self):
         return self.id + ": " + self.title
 
 
-Index = dict[str, set[Article]]
+class ArticleWithIndex:
+
+    def __init__(self, article: Article, pos: int):
+        self.article = article
+        self.pos = pos
+
+
+Index = dict[str, set[ArticleWithIndex]]
 
 
 def create_index(articles: Iterable[Article]) -> Index:
     index: Index = {}
     for a in articles:
-        for word in a.words():
-            if word not in index:
-                index[word] = set()
+        for w in a.words():
+            print(w)
+            if w.word not in index:
+                index[w.word] = set()
 
-            index[word].add(a)
+            index[w.word].add(ArticleWithIndex(a, w.pos))
     return index
 
 
@@ -46,8 +68,8 @@ def parse_articles(path: str) -> Iterable[Article]:
         return map(parse_chunk, chunks)
 
 
-def search(index: Index, *terms: str) -> dict[str, set[Article]]:
-    result: dict[str, set[Article]] = {}
+def search(index: Index, *terms: str) -> dict[str, set[ArticleWithIndex]]:
+    result: dict[str, set[ArticleWithIndex]] = {}
     for term in terms:
         result[term] = set()
         if term in index:
@@ -57,11 +79,14 @@ def search(index: Index, *terms: str) -> dict[str, set[Article]]:
 
 
 if __name__ == '__main__':
+    chars = 20
     articles = parse_articles(os.path.join(os.path.dirname(__file__), "db.txt"))
     index = create_index(articles)
-    for word, result in search(index, "kokos", "plastic").items():
+    for word, result in search(index, "kokos", "plastic", "start").items():
         if result:
             print(f"Results for {word}:")
-            print("\t" + "\n\t".join(map(str, result)))
+            print("\t" + "\n\t".join(map(lambda
+                                             a: f"{a.article} \n\t\t{a.article.text[a.pos:len(word) + a.pos + chars]}",
+                                         result)))
         else:
             print(f"No results for {word}")
