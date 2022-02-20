@@ -1,10 +1,10 @@
 def polynom(v, *args: int) -> int:
-    result = args[0]
-    for n, a in enumerate(args[1:]):
-        result += a ** (n + 1)
+    result = 0
+    for n, a in enumerate(args):
+        result += a * (v ** n)
 
     return result
 
 
 if __name__ == '__main__':
-    print(polynom(1, 3, 2, 1))
+    print(polynom(2, 3, 2, 1))  # 3 + 2(2) + 1(2 * 2)
