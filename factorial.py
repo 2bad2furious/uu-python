@@ -8,4 +8,3 @@ def factorial(n: int) -> int:
 
 if __name__ == '__main__':
     print(factorial(5))
-
